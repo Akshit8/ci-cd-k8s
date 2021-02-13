@@ -1,5 +1,56 @@
-name: CI
+name: gitops-CI
 
 on: 
   workflow_dispatch:
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: check out code
+        uses: actions/checkout@v2
+
+      - name: build and push docker image
+        uses: docker/build-push-action@v1.1.0
+        with: 
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          repository: ${{ secrets.USERNAME }}/argo-app
+          tags: ${{ github.sha }}, latest
+          path: ./app
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Setup Kustomize
+      uses: imranismail/setup-kustomize@v1
+      with:
+        kustomize-version: "3.6.1"
+
+    - name: Update Kubernetes resources
+      env:
+        DOCKER_USERNAME: ${{ secrets.USERNAME }}
+      run: |
+        cd infra
+        kustomize edit set image argo-app=$DOCKER_USERNAME/argo-app:$GITHUB_SHA
+        cat kustomization.yml
+        
+    - name: Commit files
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git commit -am "rolling image to tage $GITHUB_SHA"
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
     
