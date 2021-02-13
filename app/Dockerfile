@@ -12,6 +12,6 @@ RUN go build -o app main.go
 
 FROM scratch
 
-COPY --from=builder /build/app .
+COPY --from=builder /builder/app .
 ENTRYPOINT [ "./app" ]
 EXPOSE 3000
