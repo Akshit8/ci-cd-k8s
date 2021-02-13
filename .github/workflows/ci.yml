@@ -1,0 +1,5 @@
+name: CI
+
+on: 
+  workflow_dispatch:
+    
