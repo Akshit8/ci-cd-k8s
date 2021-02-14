@@ -110,8 +110,7 @@ ENTRYPOINT [ "./app" ]
 EXPOSE 3000
 ```
 
-**CI pipeline**<br>
-Our pipeline has two jobs
+Our **CI pipeline** has two jobs:
 - One for running tests, building and pushing the container on Dockerhub(with `Github SHA` as image tag).
 - The second one will edit the `Kustomize` patch to bump the expected container tag to the new Docker image and then commit these changes.
 
@@ -172,6 +171,25 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-    
-
 ```
+
+## Let's deploy our app
+Before setting ArgoCD let us first deploy our app inside the cluster to make sure everything works.<br>
+Before proceeding do check the [infra](https://github.com/Akshit8/ci-cd-k8s/tree/master/infra) to make sure you have required set of `k8s components`.
+```bash
+# create a new namespace
+kubectl create ns argo-app
+
+# apply the changes
+kubectl -n argo-app kustomize ci-cd-k8s/infra/ | kubectl -n argo-app apply -f -
+
+# check all components are running
+kubectl get all -n argo-app
+
+# port forward to access health router
+kubectl port-forward --address 0.0.0.0 service/argo-app -n argo-app 3000:3000
+```
+
+<img src="assets/app-deploy.png">
+
+<img src="assets/original-deploy.png">
