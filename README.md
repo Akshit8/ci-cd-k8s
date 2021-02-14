@@ -173,6 +173,10 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+Configure the repository secrets, commit your code to github and trigger the above action. If your action passes, you'll have a image pushed to Docker hub(with GITHUB SHA as image tag) and commit to your repository by Github action like this
+
+<img src="assets/ga-commit.png">
+
 ## Let's deploy our app
 Before setting ArgoCD let us first deploy our app inside the cluster to make sure everything works.<br>
 Before proceeding do check the [infra](https://github.com/Akshit8/ci-cd-k8s/tree/master/infra) to make sure you have required set of `k8s components`.
@@ -193,3 +197,6 @@ kubectl port-forward --address 0.0.0.0 service/argo-app -n argo-app 3000:3000
 <img src="assets/app-deploy.png">
 
 <img src="assets/original-deploy.png">
+
+
+
