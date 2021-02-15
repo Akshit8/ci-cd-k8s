@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,5 +37,6 @@ func argo(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": "true",
 		"message": "our CI/CD pipeline is working",
+		"timestamp": time.Now(),
 	})
 }

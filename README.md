@@ -8,14 +8,14 @@
 - Allow graceful changes like `Blue-Green Deployments` and `Canary Testing`
 
 ## CI/CD and Kubernetes
-For deploying cloud-native applications safely and efficiently on kubernetes, we need something different from traditional **CI/CD pipelines**. It should follow the same declarative way used by `k8s` to manage applications
-- Injecting kubernetes objects through a declarative document as YAML or JSON
-- Kubernetes Operators processing endlessly evaluating the difference between the submitted objects and their real state in the cluster.
+For deploying cloud-native applications safely and efficiently on Kubernetes, we need something different from traditional **CI/CD pipelines**. It should follow the same declarative way used by `k8s` to manage applications:
+- Injecting Kubernetes objects through a declarative document as YAML or JSON.
+- Kubernetes Operators processing endlessly, evaluating the difference between the submitted objects and their real state in the cluster.
 
 ## Why GitOps?
 GitOps is especially suited to deploy cloud-native applications on Kubernetes following the above methodology while retaining it's underlying philosophy:
-- Use git repo as single source of truth
-- changes are triggered with a git commit
+- Use Git repo as single source of truth
+- changes are triggered with a Git commit
 - When the state of repo changes, same changes are enforced inside the cluster.
 
 ## Our GitOps flow
@@ -23,7 +23,7 @@ GitOps is especially suited to deploy cloud-native applications on Kubernetes fo
 <img src="assets/flowchart.png">
 
 **Tools**<br>
-- **ArgoCD** - it lives inside our cluster and is responsible for deploying changes commited to repo
+- **ArgoCD** - it lives inside our cluster and is responsible for deploying changes commited to repo.
 - **Github Actions** - it is responsible for building & pushing image to docker hub, and commit the latest image tag back to infra repo.
 - **Kustomize** - it describes our application infrastructure and specification.
 
@@ -173,7 +173,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-Configure the repository secrets, commit your code to github and trigger the above action. If your action passes, you'll have a image pushed to Docker hub(with GITHUB SHA as image tag) and commit to your repository by Github action like this
+Configure the repository secrets, commit your code to Github and trigger the above action. If your action passes, you'll have a image pushed to Docker hub(with GITHUB SHA as image tag) and commit to your repository by Github action like this
 
 <img src="assets/ga-commit.png">
 
@@ -197,11 +197,12 @@ kubectl port-forward --address 0.0.0.0 service/argo-app -n argo-app 3000:3000
 <img src="assets/app-deploy.png">
 
 After **port forwarding**, open `localhost:3000/health` to verify whether everything is working.
+
 <img src="assets/original-deploy.png">
 
 ## Setting up ArgoCD
 Check [argocd-getting-started](https://argoproj.github.io/argo-cd/getting_started/) here.<br><br>
-I have copied install.yaml from [here](https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml) and checked into git so that I am able to install same version of argo in future, if required.
+I have copied install.yaml from [here](https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml) and checked into git so that I am able to install same version of Argo in future, if required.
 ```bash
 kubectl create ns argo
 
@@ -221,7 +222,7 @@ Generate a ssh key-pair using following command
 ```bash
 ssh-keygen
 ```
-Before makeing any change in argo let's first add the public ssh key inside our github. Open `repo-settings`>`deploy-key` and add the public key by clicking on **Add Deploy Key**
+Before making any change to Argo let's first add the public ssh key inside our Github repo. Open `repo-settings` > `deploy-key` and add the public key by clicking on **Add Deploy Key**
 
 <img src="assets/git-deploy-key.png">
 
@@ -230,16 +231,16 @@ Inside web ui navigate to `settings`>`repositories` and click on **CONNECT REPO 
 name: argo-app
 repository: git@github.com:/Akshit8/ci-cd-k8s
 ```
-After pasting your private ssh key click on **connect**. If the connection is successful you'll see something similar
+After pasting your private ssh key, click on **connect**. If the connection is successful you'll see something similar to below
 
 <img src="assets/repo.png">
 
 ## Creating CD pipeline on ArgoCD
-ArgoCD must be configured to observe our Git repository. This is done simply by creating an application, where we tell argo how to deploy our application to cluster. On `Applications` page click on `New App` to start creating a new application. 
+ArgoCD must be configured to observe our Git repository. This is done simply by creating an application, where we tell Argo how to deploy our application to cluster. On `Applications` page click on `New App` to start creating a new application. 
 
 <img src="assets/app-summary.png">
 
-**Note:** After adding `infra` as the path field, argo would automatically sense that we are using kustomization(since our infra folder have a `kustomization.yml` file)
+**Note:** After adding `infra` as the path field, argo would automatically sense that we are using Kustomization(since our infra folder have a `kustomization.yml` file)
 
 ## GitOps Magic
 Note that at the end of the GitHub Actions pipeline, we don’t run any imperative command to deploy our application, we just changed our container version using Kustomize and auto-pushed these changes into our repository.<br><br>
@@ -267,9 +268,9 @@ Note that ArgoCD is gracefully removing old container while simultaneously addin
 
 ## A final word
 - If you have made till here, congrats! as you now have a production-ready gitOps style cloud-native CI/CD pipeline at your disposal.
-- You may use this as a foundatinal template to build our own superb CI/CD pipeline
-- The above pipeline is so loosely coupled that you easily swap any component from it and use something you like, for e.g argo can be replaced with flux, we can use helm instead of kustomize etc.
-- I personally used ArgoCD because it can connect to multiple repos and it comes with an awesome web ui. Also it'smart as it only enforce a change to cluster if needed.
+- You may use this as a foundatinal template to build our own superb CI/CD pipelines.
+- The above pipeline is so modular that you easily swap any component from it and use something you like, for e.g argo can be replaced with flux, we can use helm instead of kustomize etc.
+- I personally used ArgoCD because it can connect to multiple repos and it comes with an awesome web ui. Also it'smart to enforce a change to cluster only if it's needed.
 - If you are using a public repo you can skip **Connecting Git repo with Argocd** part
 - If you need to pull image from a private registry you just need to [configure image pull secret for it](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)
 
