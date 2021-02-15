@@ -7,4 +7,4 @@ namespace: argo-app
 images:
 - name: argo-app
   newName: akshit8/argo-app
-  newTag: 51e15506b7e5d57e1a68bacffa986bb431263ab5
+  newTag: 9f0d1624c21656b4bbf2ae9bf8597c0d009a06b8
