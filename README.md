@@ -196,7 +196,90 @@ kubectl port-forward --address 0.0.0.0 service/argo-app -n argo-app 3000:3000
 
 <img src="assets/app-deploy.png">
 
+After **port forwarding**, open `localhost:3000/health` to verify whether everything is working.
 <img src="assets/original-deploy.png">
 
+## Setting up ArgoCD
+Check [argocd-getting-started](https://argoproj.github.io/argo-cd/getting_started/) here.<br><br>
+I have copied install.yaml from [here](https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml) and checked into git so that I am able to install same version of argo in future, if required.
+```bash
+kubectl create ns argo
+
+kubectl -n argo apply -f ci-cd-k8s/argo/install.yml  
+
+kubectl port-forward --address 0.0.0.0 service/argocd-server -n argo 3001:443
+```
+To verify your installation run the following command. Make sure all the listed components are in **healthy** condition.
+
+<img src="assets/argo-ns-check.png">
+
+After **port forwarding**, open `localhost:3001` and login with `admin` as *username* and `argocd-server podname` as *password*.
+
+## Connecting Git repo with Argocd
+Once you are able to access the web ui, let's now connect our git repository to argo cd.<br><br>
+Generate a ssh key-pair using following command
+```bash
+ssh-keygen
+```
+Before makeing any change in argo let's first add the public ssh key inside our github. Open `repo-settings`>`deploy-key` and add the public key by clicking on **Add Deploy Key**
+
+<img src="assets/git-deploy-key.png">
+
+Inside web ui navigate to `settings`>`repositories` and click on **CONNECT REPO USING SSH** option. Add the following details
+```
+name: argo-app
+repository: git@github.com:/Akshit8/ci-cd-k8s
+```
+After pasting your private ssh key click on **connect**. If the connection is successful you'll see something similar
+
+<img src="assets/repo.png">
+
+## Creating CD pipeline on ArgoCD
+ArgoCD must be configured to observe our Git repository. This is done simply by creating an application, where we tell argo how to deploy our application to cluster. On `Applications` page click on `New App` to start creating a new application. 
+
+<img src="assets/app-summary.png">
+
+**Note:** After adding `infra` as the path field, argo would automatically sense that we are using kustomization(since our infra folder have a `kustomization.yml` file)
+
+## GitOps Magic
+Note that at the end of the GitHub Actions pipeline, we don’t run any imperative command to deploy our application, we just changed our container version using Kustomize and auto-pushed these changes into our repository.<br><br>
+If you do any code change, the pipeline is triggered and a new Docker image is pushed, the container version is updated and ArgoCD should catch the change.<br><br>
+Let us test our CI/CD pipeline by adding one more endpoint to our Go application, and run the Github action after commiting the code.
+
+```go
+router.GET("/argo", argo)
+
+func argo(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"success": "true",
+		"message": "our CI/CD pipeline is working",
+	})
+}
+```
+
+Once the action is successfully done, the changes would be reflected on ArgoCD web ui
+
+<img src="assets/argo-sync.png">
+
+Note that ArgoCD is gracefully removing old container while simultaneously adding the new ones. After the new deploy is done open `localhost:3000/argo` (do make sure port-forwarding is applied) to check newly the newly added endpoint
+
+<img src="assets/result.png">
+
+## A final word
+- If you have made till here, congrats! as you now have a production-ready gitOps style cloud-native CI/CD pipeline at your disposal.
+- You may use this as a foundatinal template to build our own superb CI/CD pipeline
+- The above pipeline is so loosely coupled that you easily swap any component from it and use something you like, for e.g argo can be replaced with flux, we can use helm instead of kustomize etc.
+- I personally used ArgoCD because it can connect to multiple repos and it comes with an awesome web ui. Also it'smart as it only enforce a change to cluster if needed.
+- If you are using a public repo you can skip **Connecting Git repo with Argocd** part
+- If you need to pull image from a private registry you just need to [configure image pull secret for it](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)
+
+## Author
+**Akshit Sadana <akshitsadana@gmail.com>**
+
+- Github: [@Akshit8](https://github.com/Akshit8)
+- LinkedIn: [@akshitsadana](https://www.linkedin.com/in/akshit-sadana-b051ab121/)
+
+## License
+Licensed under the MIT License
 
 
